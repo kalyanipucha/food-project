@@ -1,6 +1,6 @@
-import axios from "axios";
+const axios = require("axios");
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Only POST allowed" });
   }
@@ -9,6 +9,7 @@ export default async function handler(req, res) {
 
   try {
     const { image } = req.body;
+    console.log("Received image length:", image.length);
 
     const response = await axios.post(
       "https://api.logmeal.es/v2/recognition/dish",
@@ -18,8 +19,7 @@ export default async function handler(req, res) {
 
     res.status(200).json(response.data);
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: error.response?.data || "LogMeal request failed" });
+    console.error("Backend LogMeal Error:", error.response?.data || error.message);
+    res.status(500).json({ error: error.response?.data || error.message });
   }
-}
+};
