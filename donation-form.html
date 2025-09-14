@@ -107,7 +107,7 @@
         const fileInput = document.getElementById("foodImage");
         if (fileInput.files.length > 0) {
           const file = fileInput.files[0];
-          const fileName = food_${Date.now()}_${file.name};
+          const fileName = `food_${Date.now()}_${file.name}`;
           const { error: uploadError } = await supabase.storage
             .from(bucketName)
             .upload(fileName, file);
