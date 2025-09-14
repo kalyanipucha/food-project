@@ -19,8 +19,13 @@
       padding: 40px;
       border-radius: 20px;
       width: 100%;
-      max-width: 420px;
+      max-width: 520px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      animation: fadeIn 0.8s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     h2 {
       text-align: center;
@@ -33,7 +38,7 @@
       font-weight: 600;
       color: #374151;
     }
-    input {
+    input, textarea {
       width: 100%;
       padding: 14px;
       margin-bottom: 16px;
@@ -56,15 +61,8 @@
     button:hover {
       background: linear-gradient(135deg, #15803d, #166534);
     }
-    .link {
-      text-align: center;
-      margin-top: 10px;
-    }
-    .link a {
-      color: #166534;
-      font-weight: 600;
-      cursor: pointer;
-    }
+    .link { text-align: center; margin-top: 10px; }
+    .link a { color: #166534; font-weight: 600; cursor: pointer; }
     .success, .error {
       text-align: center;
       padding: 10px;
@@ -79,24 +77,45 @@
 </head>
 <body>
   <div class="panel">
-    <h2 id="form-title">🧑‍🤝‍🧑 Donor Login</h2>
-
-    <!-- Signup/Login Form -->
-    <form id="authForm">
-      <label for="email">Email</label>
-      <input type="email" id="email" required placeholder="example@email.com" />
-
-      <label for="password">Password</label>
-      <input type="password" id="password" required placeholder="Enter password" />
-
-      <button type="submit" id="submitBtn">Login</button>
-    </form>
-
-    <div class="link">
-      <span id="toggleText">New donor? <a id="toggleLink">Sign Up</a></span>
+    <!-- Authentication Panel -->
+    <div id="authSection">
+      <h2 id="form-title">🧑‍🤝‍🧑 Donor Login</h2>
+      <form id="authForm">
+        <label>Email</label>
+        <input type="email" id="email" required placeholder="example@email.com" />
+        <label>Password</label>
+        <input type="password" id="password" required placeholder="Enter password" />
+        <button type="submit" id="submitBtn">Login</button>
+      </form>
+      <div class="link">
+        <span id="toggleText">New donor? <a id="toggleLink">Sign Up</a></span>
+      </div>
     </div>
 
-    <button id="logoutBtn" style="display:none;">Logout</button>
+    <!-- Donation Form -->
+    <div id="donationSection" style="display:none;">
+      <h2>🍴 Donate Food</h2>
+      <form id="donationForm">
+        <label>Your Name</label>
+        <input type="text" id="donor_name" readonly />
+        <label>Email</label>
+        <input type="email" id="donor_email" readonly />
+        <label>Food Type</label>
+        <input type="text" id="food_type" placeholder="e.g., Rice, Roti, Vegetables" required />
+        <label>Quantity</label>
+        <input type="number" id="quantity" placeholder="e.g., 20" required />
+        <label>Pickup Location</label>
+        <textarea id="location" rows="3" placeholder="Enter address or pickup point" required></textarea>
+        <label>Food Photo (optional)</label>
+        <input type="file" id="foodImage" accept="image/*" />
+        <div>
+          <input type="checkbox" id="emergency_mode" />
+          <label for="emergency_mode">Mark as Emergency Donation</label>
+        </div>
+        <button type="submit">Submit Donation</button>
+      </form>
+      <button id="logoutBtn">Logout</button>
+    </div>
 
     <div class="success"></div>
     <div class="error"></div>
@@ -109,7 +128,8 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllaG5uZGludW5jc3F6Zmh2ZnhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3ODU1OTEsImV4cCI6MjA3MzM2MTU5MX0.iQ0NvE4Fhf4s3zXv-oizF3gxS2pRJlwdWKduuqdjgGA";
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const form = document.getElementById("authForm");
+    const authSection = document.getElementById("authSection");
+    const donationSection = document.getElementById("donationSection");
     const formTitle = document.getElementById("form-title");
     const submitBtn = document.getElementById("submitBtn");
     const toggleLink = document.getElementById("toggleLink");
@@ -117,10 +137,11 @@
     const logoutBtn = document.getElementById("logoutBtn");
     const successDiv = document.querySelector(".success");
     const errorDiv = document.querySelector(".error");
+    const bucketName = "food-images";
 
-    let isLogin = true; // default: login mode
+    let isLogin = true;
 
-    // Toggle between Login and Signup
+    // Toggle Login/Signup
     toggleLink.addEventListener("click", () => {
       isLogin = !isLogin;
       if (isLogin) {
@@ -134,36 +155,66 @@
       }
     });
 
-    // Signup/Login Submit
-    form.addEventListener("submit", async (e) => {
+    // Auth Submit
+    document.getElementById("authForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
-
       try {
         let data, error;
         if (isLogin) {
-          ({ data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          }));
+          ({ data, error } = await supabase.auth.signInWithPassword({ email, password }));
         } else {
-          ({ data, error } = await supabase.auth.signUp({
-            email,
-            password,
-          }));
+          ({ data, error } = await supabase.auth.signUp({ email, password }));
         }
         if (error) throw error;
 
-        successDiv.style.display = "block";
-        successDiv.textContent = isLogin ? "✅ Login successful!" : "✅ Signup successful! Please check your email.";
-        errorDiv.style.display = "none";
-        logoutBtn.style.display = "block";
-        form.style.display = "none";
-        toggleText.style.display = "none";
+        // Switch to donation form
+        authSection.style.display = "none";
+        donationSection.style.display = "block";
+        document.getElementById("donor_email").value = email;
+        document.getElementById("donor_name").value = email.split("@")[0]; // basic name autofill
       } catch (err) {
         errorDiv.style.display = "block";
         errorDiv.textContent = "❌ " + err.message;
+      }
+    });
+
+    // Donation Submit
+    document.getElementById("donationForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      try {
+        let photoUrl = null;
+        const fileInput = document.getElementById("foodImage");
+        if (fileInput.files.length > 0) {
+          const file = fileInput.files[0];
+          const fileName = `food_${Date.now()}_${file.name}`;
+          const { error: uploadError } = await supabase.storage.from(bucketName).upload(fileName, file);
+          if (uploadError) throw uploadError;
+          const { data: publicUrlData } = supabase.storage.from(bucketName).getPublicUrl(fileName);
+          photoUrl = publicUrlData.publicUrl;
+        }
+
+        const donation = {
+          donor_name: document.getElementById("donor_name").value,
+          donor_email: document.getElementById("donor_email").value,
+          food_type: document.getElementById("food_type").value,
+          quantity: parseInt(document.getElementById("quantity").value),
+          location: document.getElementById("location").value,
+          photo_url: photoUrl,
+          emergency_mode: document.getElementById("emergency_mode").checked,
+        };
+
+        const { error } = await supabase.from("donations").insert([donation]);
+        if (error) throw error;
+
+        successDiv.style.display = "block";
+        successDiv.textContent = "✅ Donation submitted successfully!";
+        errorDiv.style.display = "none";
+        document.getElementById("donationForm").reset();
+      } catch (err) {
+        errorDiv.style.display = "block";
+        errorDiv.textContent = "❌ Error submitting donation.";
         successDiv.style.display = "none";
       }
     });
@@ -171,11 +222,8 @@
     // Logout
     logoutBtn.addEventListener("click", async () => {
       await supabase.auth.signOut();
-      form.style.display = "block";
-      toggleText.style.display = "block";
-      logoutBtn.style.display = "none";
-      successDiv.style.display = "none";
-      errorDiv.style.display = "none";
+      authSection.style.display = "block";
+      donationSection.style.display = "none";
     });
   </script>
 </body>
