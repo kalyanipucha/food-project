@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NGO Panel - FoodBridge</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 0;
+      color: #263238;
+    }
+    header {
+      background: #1B5E20;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 { margin: 0; font-size: 1.6rem; }
+    nav a, #loginBtn, #signInBtn, #signOutBtn {
+      color: white;
+      text-decoration: none;
+      margin-left: 1rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    nav a:hover, #loginBtn:hover, #signInBtn:hover, #signOutBtn:hover { color: #FF7043; }
+    #welcomeMsg { font-weight: bold; font-size: 1.2rem; margin-left: 1rem; }
+
+    .container { max-width: 1000px; margin: 3rem auto; padding: 0 2rem; }
+    h2 { text-align: center; color: #1B5E20; margin-bottom: 2rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
+    }
+    th, td { padding: 12px 15px; text-align: left; }
+    th { background: #1B5E20; color: white; }
+    tr:nth-child(even) { background: #f2f2f2; }
+
+    button.claim-btn {
+      background: #FF7043;
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    button.claim-btn:hover { background: #e64a19; }
+    button.claimed-btn {
+      background: #888888;
+      cursor: default;
+    }
+
+    img.food-img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div style="display:flex; align-items:center;">
+      <h1>FoodBridge - NGO Panel</h1>
+      <div id="welcomeMsg"></div>
+      <a id="loginBtn" href="ngo-login.html">Login</a>
+      <a id="signInBtn" href="ngo-signup.html">Sign Up</a>
+      <a id="signOutBtn" style="display:none;">Sign Out</a>
+    </div>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="donation-form.html">Donate</a>
+      <a href="ngo-panel.html">NGO Panel</a>
+      <a href="map.html">Map</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h2>Available Donations</h2>
+    <table id="donationTable">
+      <thead>
+        <tr>
+          <th>Donor</th>
+          <th>Food Type</th>
+          <th>Quantity</th>
+          <th>Location</th>
+          <th>Emergency</th>
+          <th>Image</th>
+          <th>Claim</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    const SUPABASE_URL = "https://iehnndinuncsqzfhvfxa.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllaG5uZGludW5jc3F6Zmh2ZnhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3ODU1OTEsImV4cCI6MjA3MzM2MTU5MX0.iQ0NvE4Fhf4s3zXv-oizF3gxS2pRJlwdWKduuqdjgGA";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const tableBody = document.querySelector("#donationTable tbody");
+    const welcomeDiv = document.getElementById("welcomeMsg");
+    const loginBtn = document.getElementById("loginBtn");
+    const signInBtn = document.getElementById("signInBtn");
+    const signOutBtn = document.getElementById("signOutBtn");
+
+    const ngoId = localStorage.getItem("ngo_id");
+    const ngoName = localStorage.getItem("ngo_name");
+
+    // Update header UI based on login state
+    if (ngoId) {
+      welcomeDiv.innerText = `Welcome, ${ngoName}!`;
+      loginBtn.style.display = "none";
+      signInBtn.style.display = "none";
+      signOutBtn.style.display = "inline-block";
+    }
+
+    signOutBtn.addEventListener("click", () => {
+      localStorage.removeItem("ngo_id");
+      localStorage.removeItem("ngo_name");
+      location.reload();
+    });
+
+    async function fetchDonations() {
+      const { data, error } = await supabase
+        .from("donations")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) { console.error(error); return; }
+
+      tableBody.innerHTML = "";
+      for (const donation of data) {
+        // Check if already claimed
+        const { data: claimedData } = await supabase
+          .from("donation_claims")
+          .select("*")
+          .eq("donation_id", donation.id);
+
+        if (claimedData.length > 0) continue; // skip claimed donations
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${donation.donor_name}</td>
+          <td>${donation.food_type}</td>
+          <td>${donation.quantity}</td>
+          <td>${donation.location}</td>
+          <td>${donation.emergency_mode ? "Yes" : "No"}</td>
+          <td>${donation.photo_url ? `<img src="${donation.photo_url}" class="food-img">` : "No Image"}</td>
+          <td><button class="claim-btn">Claim</button></td>
+        `;
+        const claimBtn = row.querySelector(".claim-btn");
+
+        // Disable claim if not logged in
+        if (!ngoId) {
+          claimBtn.disabled = true;
+          claimBtn.innerText = "Login to Claim";
+          claimBtn.classList.add("claimed-btn");
+        } else {
+          claimBtn.addEventListener("click", () => claimDonation(donation.id, row));
+        }
+
+        tableBody.appendChild(row);
+      }
+    }
+
+    async function claimDonation(donationId, tableRow) {
+      if (!ngoId) {
+        alert("Please login to claim donations!");
+        return;
+      }
+
+      const { data: existing } = await supabase
+        .from("donation_claims")
+        .select("*")
+        .eq("donation_id", donationId);
+
+      if (existing.length > 0) {
+        alert("This donation is already claimed!");
+        tableRow.remove();
+        return;
+      }
+
+      const { error } = await supabase
+        .from("donation_claims")
+        .insert([{ donation_id: donationId, ngo_id: ngoId }]);
+
+      if (error) {
+        console.error("Claim error:", error);
+        alert("Error claiming donation. Check console.");
+      } else {
+        // Remove donation row after successful claim
+        tableRow.remove();
+      }
+    }
+
+    fetchDonations();
+  </script>
+</body>
+</html>

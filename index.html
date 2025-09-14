@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Food Donation Platform</title>
+  <style>
+    :root {
+      --deep-green: #1B5E20;
+      --lime: #AEEA00;
+      --orange: #FF7043;
+      --light: #FAFAFA;
+      --gray: #ECEFF1;
+      --charcoal: #263238;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--light);
+      color: var(--charcoal);
+      overflow-x: hidden;
+    }
+
+    /* ---------- Navbar ---------- */
+    header {
+      background: var(--deep-green);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.7rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      animation: fadeInDown 1s ease;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 1.5rem;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    nav a:hover {
+      color: var(--lime);
+    }
+
+    /* ---------- Hero Section ---------- */
+    .hero {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 7rem 2rem;
+      background: linear-gradient(135deg, rgba(27,94,32,0.9), rgba(38,50,56,0.9)),
+                  url('https://images.unsplash.com/photo-1504754524776-8f4f37790ca0') center/cover no-repeat;
+      color: white;
+      position: relative;
+      animation: fadeIn 2s ease;
+    }
+
+    .hero h2 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      font-weight: 700;
+      animation: slideUp 1.5s ease;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      max-width: 700px;
+      animation: fadeIn 2.5s ease;
+    }
+
+    .btn {
+      background: var(--orange);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      margin: 0.5rem;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .btn:hover {
+      background: #e64a19;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+
+    /* ---------- Features ---------- */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 2rem;
+      padding: 5rem 2rem;
+      background: var(--gray);
+    }
+
+    .card {
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      text-align: center;
+      transition: transform 0.4s, box-shadow 0.4s;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeUp 1.2s forwards;
+    }
+
+    .card h3 {
+      color: var(--deep-green);
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
+    }
+
+    .card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    }
+
+    .card:hover h3 {
+      color: var(--orange);
+    }
+
+    /* ---------- Footer ---------- */
+    footer {
+      background: var(--charcoal);
+      color: white;
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.9rem;
+    }
+
+    footer span {
+      color: var(--lime);
+      font-weight: 600;
+    }
+
+    /* ---------- Animations ---------- */
+    @keyframes fadeIn {
+      0% {opacity: 0;}
+      100% {opacity: 1;}
+    }
+
+    @keyframes slideUp {
+      0% {transform: translateY(40px); opacity: 0;}
+      100% {transform: translateY(0); opacity: 1;}
+    }
+
+    @keyframes fadeInDown {
+      0% {transform: translateY(-40px); opacity: 0;}
+      100% {transform: translateY(0); opacity: 1;}
+    }
+
+    @keyframes fadeUp {
+      0% {opacity: 0; transform: translateY(30px);}
+      100% {opacity: 1; transform: translateY(0);}
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <header>
+    <h1>FoodBridge</h1>
+    <nav>
+      <a href="#">Home</a>
+      <a href="donation-form.html">Donate</a>
+      <a href="ngo-panel.html">NGO Panel</a>
+      <a href="#">Map</a>
+      <a href="#">Chatbot</a>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <h2>Bridge the Gap: Share Food, Spread Smiles</h2>
+    <p>Join our mission to eliminate food waste and ensure every meal reaches someone in need.</p>
+    <button class="btn">🍲 Donate Food</button>
+    <button class="btn">🏥 Request Help</button>
+  </section>
+
+  <!-- Features -->
+  <section class="features">
+    <div class="card">
+      <h3>🍲 Easy Donation</h3>
+      <p>Fill a quick form and share your excess food effortlessly.</p>
+    </div>
+    <div class="card">
+      <h3>🏥 NGO Panel</h3>
+      <p>NGOs can manage and claim donations in real-time.</p>
+    </div>
+    <div class="card">
+      <h3>📍 Live Tracking</h3>
+      <p>Track donation pickups and deliveries with Google Maps.</p>
+    </div>
+    <div class="card">
+      <h3>🤖 Smart AI</h3>
+      <p>Upload food photos and let AI estimate portions & quality.</p>
+    </div>
+    <div class="card">
+      <h3>📢 Instant Alerts</h3>
+      <p>Receive live notifications via Firebase or OneSignal.</p>
+    </div>
+    <div class="card">
+      <h3>💬 AI Chatbot</h3>
+      <p>24/7 support with Gemini/OpenAI integration.</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 <span>FoodBridge</span> | Together Against Food Waste</p>
+  </footer>
+</body>
+</html>

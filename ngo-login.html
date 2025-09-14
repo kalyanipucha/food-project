@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NGO Login - FoodBridge</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f9f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .form-container {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    h2 { text-align: center; color: #1B5E20; margin-bottom: 20px; }
+    label { display: block; margin: 8px 0 4px; font-weight: 600; }
+    input { width: 100%; padding: 12px; margin-bottom: 16px; border-radius: 8px; border: 1px solid #ccc; }
+    button {
+      width: 100%; padding: 12px;
+      background: #1B5E20; color: white;
+      border: none; border-radius: 10px;
+      font-weight: bold; cursor: pointer;
+    }
+    button:hover { background: #145214; }
+    .message { text-align: center; font-weight: bold; margin-top: 10px; display: none; }
+    .success { color: green; }
+    .error { color: red; }
+    .signup-link { text-align: center; margin-top: 10px; }
+    .signup-link a { color: #1B5E20; text-decoration: none; font-weight: bold; }
+    .signup-link a:hover { color: #145214; }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>NGO Login</h2>
+    <form id="loginForm">
+      <label>Email</label>
+      <input type="email" id="loginEmail" required />
+
+      <label>Password</label>
+      <input type="password" id="loginPassword" required />
+
+      <button type="submit">Login</button>
+    </form>
+    <div class="message error" id="errorMsg">Invalid email or password.</div>
+    <div class="signup-link">
+      Don't have an account? <a href="ngo-signup.html">Sign Up</a>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    const SUPABASE_URL = "https://iehnndinuncsqzfhvfxa.supabase.co"; // Replace with your project URL
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllaG5uZGludW5jc3F6Zmh2ZnhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3ODU1OTEsImV4cCI6MjA3MzM2MTU5MX0.iQ0NvE4Fhf4s3zXv-oizF3gxS2pRJlwdWKduuqdjgGA"; // Replace with your anon key
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const form = document.getElementById("loginForm");
+    const errorMsg = document.getElementById("errorMsg");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPassword").value;
+
+      try {
+        const { data, error } = await supabase
+          .from("ngo_panel")
+          .select("*")
+          .eq("email", email)
+          .eq("password", password) // production: hash passwords
+          .single();
+
+        if (error || !data) {
+          errorMsg.style.display = "block";
+        } else {
+          errorMsg.style.display = "none";
+          // Save logged-in NGO info
+          localStorage.setItem("ngo_id", data.id);
+          localStorage.setItem("ngo_name", data.ngo_name);
+
+          // Redirect to NGO Panel
+          window.location.href = "ngo-panel.html";
+        }
+      } catch (err) {
+        console.error(err);
+        errorMsg.style.display = "block";
+      }
+    });
+  </script>
+</body>
+</html>
