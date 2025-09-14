@@ -5,7 +5,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Only POST allowed" });
   }
 
-  const API_KEY = "0ecbb07ef321688c1acd88aa90b51481f00f41a0";
+  const API_KEY = "b268eee263e693cf6299faf33bf31fff88a9c93f";
 
   try {
     const { image } = req.body;
