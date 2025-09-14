@@ -121,6 +121,7 @@
     <a href="index.html">Home</a>
     <a href="donation-form.html">Donate</a>
     <a href="ngo-panel.html">NGO Panel</a>
+    <a href="ngo-dashboard-tracking.html">Donation Tracking</a>
     <a href="map.html">Map</a>
   </nav>
 </header>
@@ -257,21 +258,20 @@ async function openReceiverModal(donationId, tableRow, emergency){
   document.getElementById("ngo_name").value=ngoName;
   receiverForm.onsubmit=async e=>{
     e.preventDefault();
-    const receiverInfo={
-      ngo_id: ngoId,
-      ngo_name: document.getElementById("ngo_name").value,
-      ngo_email: document.getElementById("ngo_email").value,
-      receiver_name: document.getElementById("receiver_name").value,
-      receiver_phone: document.getElementById("receiver_phone").value,
-      receiver_id: document.getElementById("receiver_id").value,
-      live_location: document.getElementById("live_location").value,
-      delivery_time: document.getElementById("delivery_time").value,
-      notes: document.getElementById("notes").value||null,
-      donation_id: donationId,
-      donation_name: tableRow.querySelector("td:nth-child(2)").innerText,
-      emergency_mode: emergency,
-      created_at: new Date().toISOString()
-    };
+    const receiverInfo = {
+  ngo_id: ngoId,
+  ngo_name: document.getElementById("ngo_name").value,
+  ngo_email: document.getElementById("ngo_email").value,
+  receiver_name: document.getElementById("receiver_name").value,
+  receiver_phone: document.getElementById("receiver_phone").value,
+  receiver_id: document.getElementById("receiver_id").value,
+  live_location: document.getElementById("live_location").value,
+  delivery_time: document.getElementById("delivery_time").value,
+  notes: document.getElementById("notes").value || null,
+  donation_id: donationId,
+  created_at: new Date().toISOString()
+};
+
     const { error } = await supabase.from("donation_receivers").insert([receiverInfo]);
     if(error){ console.error(error); successDiv.style.display="none"; errorDiv.style.display="block"; }
     else{
