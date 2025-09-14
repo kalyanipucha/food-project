@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Donate Food - Food Donation Platform</title>
+  <title>Donor Panel - Food Donation</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: "Poppins", sans-serif;
       background: linear-gradient(135deg, #f0fdf4, #dcfce7);
@@ -13,78 +12,94 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      color: #1f2937;
+      margin: 0;
     }
-    .form-wrapper {
+    .panel {
       background: white;
       padding: 40px;
       border-radius: 20px;
       width: 100%;
-      max-width: 520px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-      animation: fadeIn 0.8s ease-in-out;
+      max-width: 420px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #166534;
     }
-    h2 { text-align: center; font-size: 2rem; color: #166534; margin-bottom: 10px; }
-    p.subtitle { text-align: center; font-size: 1rem; color: #4b5563; margin-bottom: 30px; }
-    label { display: block; margin-bottom: 6px; font-weight: 600; color: #374151; }
-    input, textarea, select {
-      width: 100%; padding: 14px; margin-bottom: 20px;
-      border: 1.5px solid #d1d5db; border-radius: 12px; font-size: 1rem;
-      transition: border-color 0.3s, box-shadow 0.3s;
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #374151;
     }
-    input:focus, textarea:focus, select:focus {
-      border-color: #16a34a; box-shadow: 0 0 0 3px #bbf7d0; outline: none;
+    input {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 16px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 12px;
+      font-size: 1rem;
     }
-    .checkbox { display: flex; align-items: center; margin-bottom: 20px; }
-    .checkbox input { margin-right: 10px; transform: scale(1.2); cursor: pointer; }
-    .checkbox label { color: #374151; font-weight: 500; cursor: pointer; }
     button {
-      width: 100%; padding: 16px; background: linear-gradient(135deg, #16a34a, #15803d);
-      border: none; border-radius: 14px; color: white; font-size: 1.1rem; font-weight: 600; cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-bottom: 10px;
     }
-    button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(22,163,74,0.3); }
+    button:hover {
+      background: linear-gradient(135deg, #15803d, #166534);
+    }
+    .link {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .link a {
+      color: #166534;
+      font-weight: 600;
+      cursor: pointer;
+    }
     .success, .error {
-      text-align: center; padding: 12px; margin-top: 20px; border-radius: 10px; font-weight: 600; display: none;
+      text-align: center;
+      padding: 10px;
+      margin-top: 15px;
+      border-radius: 10px;
+      font-weight: 600;
+      display: none;
     }
     .success { background: #dcfce7; color: #166534; }
     .error { background: #fee2e2; color: #991b1b; }
-    footer { text-align: center; margin-top: 25px; font-size: 0.9rem; color: #6b7280; }
   </style>
 </head>
 <body>
-  <div class="form-wrapper">
-    <h2>🍴 Donate Food</h2>
-    <p class="subtitle">Help reduce food waste and support communities in need</p>
-    
-    <form id="donationForm">
-      <label for="donor_name">Your Name</label>
-      <input type="text" id="donor_name" placeholder="Enter your full name" required />
-      <label for="donor_email">Email</label>
-      <input type="email" id="donor_email" placeholder="example@email.com" required />
-      <label for="food_type">Food Type</label>
-      <input type="text" id="food_type" placeholder="e.g., Rice, Roti, Vegetables" required />
-      <label for="quantity">Quantity (approx. portions)</label>
-      <input type="number" id="quantity" placeholder="e.g., 20" required />
-      <label for="location">Pickup Location</label>
-      <textarea id="location" rows="3" placeholder="Enter address or pickup point" required></textarea>
-      <label for="foodImage">Food Photo: (optional)</label>
-      <input type="file" id="foodImage" accept="image/*" />
-      <div class="checkbox">
-        <input type="checkbox" id="emergency_mode" />
-        <label for="emergency_mode">Mark as Emergency Donation</label>
-      </div>
-      <button type="submit">Submit Donation</button>
+  <div class="panel">
+    <h2 id="form-title">🧑‍🤝‍🧑 Donor Login</h2>
+
+    <!-- Signup/Login Form -->
+    <form id="authForm">
+      <label for="email">Email</label>
+      <input type="email" id="email" required placeholder="example@email.com" />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" required placeholder="Enter password" />
+
+      <button type="submit" id="submitBtn">Login</button>
     </form>
 
-    <div class="success">✅ Donation submitted successfully!</div>
-    <div class="error">❌ Error submitting donation. Try again.</div>
+    <div class="link">
+      <span id="toggleText">New donor? <a id="toggleLink">Sign Up</a></span>
+    </div>
 
-    <footer>Powered by Supabase | Food Waste Management Initiative</footer>
+    <button id="logoutBtn" style="display:none;">Logout</button>
+
+    <div class="success"></div>
+    <div class="error"></div>
   </div>
 
   <script type="module">
@@ -94,52 +109,73 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllaG5uZGludW5jc3F6Zmh2ZnhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3ODU1OTEsImV4cCI6MjA3MzM2MTU5MX0.iQ0NvE4Fhf4s3zXv-oizF3gxS2pRJlwdWKduuqdjgGA";
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const form = document.getElementById("donationForm");
+    const form = document.getElementById("authForm");
+    const formTitle = document.getElementById("form-title");
+    const submitBtn = document.getElementById("submitBtn");
+    const toggleLink = document.getElementById("toggleLink");
+    const toggleText = document.getElementById("toggleText");
+    const logoutBtn = document.getElementById("logoutBtn");
     const successDiv = document.querySelector(".success");
     const errorDiv = document.querySelector(".error");
-    const bucketName = "food-images"; // your Supabase bucket name
 
+    let isLogin = true; // default: login mode
+
+    // Toggle between Login and Signup
+    toggleLink.addEventListener("click", () => {
+      isLogin = !isLogin;
+      if (isLogin) {
+        formTitle.textContent = "🧑‍🤝‍🧑 Donor Login";
+        submitBtn.textContent = "Login";
+        toggleText.innerHTML = 'New donor? <a id="toggleLink">Sign Up</a>';
+      } else {
+        formTitle.textContent = "🧑‍🤝‍🧑 Donor Signup";
+        submitBtn.textContent = "Sign Up";
+        toggleText.innerHTML = 'Already have an account? <a id="toggleLink">Login</a>';
+      }
+    });
+
+    // Signup/Login Submit
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
 
       try {
-        let photoUrl = null;
-        const fileInput = document.getElementById("foodImage");
-        if (fileInput.files.length > 0) {
-          const file = fileInput.files[0];
-          const fileName = `food_${Date.now()}_${file.name}`;
-          const { error: uploadError } = await supabase.storage
-            .from(bucketName)
-            .upload(fileName, file);
-          if (uploadError) throw uploadError;
-          const { data: publicUrlData, error: urlError } = supabase.storage
-            .from(bucketName)
-            .getPublicUrl(fileName);
-          if (urlError) throw urlError;
-          photoUrl = publicUrlData.publicUrl;
+        let data, error;
+        if (isLogin) {
+          ({ data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          }));
+        } else {
+          ({ data, error } = await supabase.auth.signUp({
+            email,
+            password,
+          }));
         }
-
-        const donation = {
-          donor_name: document.getElementById("donor_name").value,
-          donor_email: document.getElementById("donor_email").value,
-          food_type: document.getElementById("food_type").value,
-          quantity: parseInt(document.getElementById("quantity").value),
-          location: document.getElementById("location").value,
-          photo_url: photoUrl,
-          emergency_mode: document.getElementById("emergency_mode").checked,
-        };
-
-        const { error } = await supabase.from("donations").insert([donation]);
         if (error) throw error;
 
-        form.reset();
-        errorDiv.style.display = "none";
         successDiv.style.display = "block";
+        successDiv.textContent = isLogin ? "✅ Login successful!" : "✅ Signup successful! Please check your email.";
+        errorDiv.style.display = "none";
+        logoutBtn.style.display = "block";
+        form.style.display = "none";
+        toggleText.style.display = "none";
       } catch (err) {
-        console.error(err);
-        successDiv.style.display = "none";
         errorDiv.style.display = "block";
+        errorDiv.textContent = "❌ " + err.message;
+        successDiv.style.display = "none";
       }
+    });
+
+    // Logout
+    logoutBtn.addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      form.style.display = "block";
+      toggleText.style.display = "block";
+      logoutBtn.style.display = "none";
+      successDiv.style.display = "none";
+      errorDiv.style.display = "none";
     });
   </script>
 </body>
