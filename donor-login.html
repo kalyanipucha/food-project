@@ -65,6 +65,7 @@ form.addEventListener("submit", async (e) => {
       errorMsg.style.display = "none";
       localStorage.setItem("donor_id", data.id);
       localStorage.setItem("donor_name", data.donor_name);
+      localStorage.setItem("donor_email", data.email);
       window.location.href = "donor-panel.html";
     }
   } catch(err){
