@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Donor Panel - FoodBridge</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <style>
   body { font-family: 'Poppins', sans-serif; margin:0; padding:0; background: #f0fdf4; color: #1f2937; }
   header { background: rgba(27,94,32,0.9); color:white; padding:1rem 2rem; display:flex; justify-content:space-between; align-items:center; }
@@ -108,6 +109,11 @@
       box-shadow: 0 8px 20px rgba(0,0,0,0.3);
     }
 
+    #map {
+      height: 30vh;
+      width: 40%;
+    }
+
 
      /* ---------- Animations ---------- */
     @keyframes fadeIn {
@@ -129,6 +135,92 @@
       0% {opacity: 0; transform: translateY(30px);}
       100% {opacity: 1; transform: translateY(0);}
     }
+
+    /*donation dashboard*/
+    /* ---------- Dashboard Styling ---------- */
+.dashboard-card {
+  background: linear-gradient(135deg, #ffffff, #f9fafb);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  margin-top: 2rem;
+  display: none;
+}
+
+.dashboard-card h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #14532d;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.dashboard-card h2::before {
+  content: "📦";
+  font-size: 1.6rem;
+}
+
+.donation-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.donation-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.donation-card p {
+  margin: 0.3rem 0;
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.donation-card p b {
+  color: #111827;
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-claimed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.track-btn {
+  margin-top: 1rem;
+  padding: 10px 16px;
+  background: linear-gradient(135deg,#16a34a,#15803d);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.track-btn:hover {
+  background: #14532d;
+  transform: translateY(-2px);
+}
+
 </style>
 </head>
 <body>
@@ -156,6 +248,7 @@
     <p>Join our mission to eliminate food waste and ensure every meal reaches someone in need.</p>
     <button id="btn" class="btn" onclick="click(window.location.href='donor-signup.html')">Sign In to Donate</button>
     <button id="form" class="btn" style="display: none;">Donate Now!</button>
+    <button id="dashboard" class="btn" style="display: none;">Donation Dashboard</button>
   </section>
 
 
@@ -189,8 +282,15 @@
       <input type="text" id="food_type" placeholder="e.g., Rice, Roti, Vegetables" required />
       <label for="quantity">Quantity (approx. portions)</label>
       <input type="number" id="quantity" placeholder="e.g., 20" required />
-      <label for="location">Pickup Location</label>
-      <textarea id="location" rows="3" placeholder="Enter address or pickup point" required></textarea>
+      <div>
+          <label class="location">Pickup address (enter full address)</label>
+          <input type="text" id="address" required class="w-full border rounded px-3 py-2" placeholder="Street, Area, City">
+        </div>
+
+        <div class="flex gap-3">
+          <button id="geocodeBtn" class="loc_btn" onclick="locateAddress()">Locate on map</button>
+        </div>
+        <div id="map"></div>
       <label for="foodImage">Food Photo: (optional)</label>
       <input type="file" id="foodImage" accept="image/*" />
       <div class="checkbox">
@@ -202,8 +302,24 @@
     <div class="success">✅ Donation submitted successfully!</div>
     <div class="error">❌ Error submitting donation. Try again.</div>
   </div>
+ <!-- Donation Dashboard -->
+<div id="donation_dashboard" class="dashboard-card mt-10 p-5 bg-white rounded-xl shadow-md">
+  <h2 class="text-2xl font-bold mb-4 text-green-800">📊 Your Donation Dashboard</h2>
+  <div id="donationDashboardList" class="flex flex-col gap-3">
+    <!-- donations will render here -->
+  </div>
 </div>
 
+  <!-- Full map to visualize donor <-> receiver for a chosen donation -->
+  <div class="card" id="trackingPanel" style="display:none">
+    <h2 class="text-lg font-bold mb-3">Live tracking for selected donation</h2>
+    <div id="mapFull"></div>
+    <p class="muted text-sm mt-2" id="trackingInfo"></p>
+  </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 const SUPABASE_URL = "https://iehnndinuncsqzfhvfxa.supabase.co";
@@ -215,11 +331,15 @@ const loginBtn = document.getElementById("loginBtn");
 const signInBtn = document.getElementById("signInBtn");
 const signOutBtn = document.getElementById("signOutBtn");
 const donationFormWrapper = document.getElementById("donationFormWrapper");
+const donation_dashboard = document.getElementById("donation_dashboard");
 const donor_name = document.getElementById("donor_name");
 const donor_email = document.getElementById("donor_email");
 const donationForm = document.getElementById("donationForm");
+const donationsList = document.getElementById('donationsList');
+const claimedDashboard = document.getElementById("claimedDashboard");
 const btn = document.getElementById("btn");
 const form = document.getElementById("form");
+const dashboard = document.getElementById("dashboard");
 const successDiv = document.querySelector(".success");
 const errorDiv = document.querySelector(".error");
 
@@ -234,6 +354,7 @@ if(donorId){
   btn.style.display="none";
   signOutBtn.style.display="inline-block";
   form.style.display="block";
+  dashboard.style.display="block";
   
 
   // Autofill form
@@ -243,6 +364,12 @@ if(donorId){
 
 form.addEventListener("click",()=>{
     donationFormWrapper.style=" display:block; background:white; padding:40px; border-radius:20px; max-width:520px; margin:auto; box-shadow:0 10px 30px rgba(0,0,0,0.08); ";
+    donation_dashboard.style="display:none";
+});
+
+dashboard.addEventListener("click",()=>{
+  donation_dashboard.style="display:block";
+  donationFormWrapper.style="display:none";
 });
 
 signOutBtn.addEventListener("click",()=>{
@@ -251,6 +378,74 @@ signOutBtn.addEventListener("click",()=>{
   localStorage.removeItem("donor_email");
   location.reload();
 });
+
+var map = L.map('map').setView([20.5937, 78.9629], 5); // Default India
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/">OSM</a> contributors'
+    }).addTo(map);
+
+    var marker, finalLat, finalLng, finalAddress;
+
+    // Function: locate by address
+    async function locateAddress() {
+      var address = document.getElementById("address").value;
+      if (!address) {
+        alert("Please enter an address!");
+        return;
+      }
+
+      finalAddress = address;
+
+      let response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
+      let data = await response.json();
+
+      if (data.length > 0) {
+        var lat = parseFloat(data[0].lat);
+        var lon = parseFloat(data[0].lon);
+
+        finalLat = lat;
+        finalLng = lon;
+
+        if (marker) {
+          marker.setLatLng([lat, lon]);
+        } else {
+          marker = L.marker([lat, lon], {draggable: true}).addTo(map);
+
+          // Manual dragging
+          marker.on('dragend', function () {
+            var pos = marker.getLatLng();
+            finalLat = pos.lat;
+            finalLng = pos.lng;
+            marker.setPopupContent(`Manual Location:<br>${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}`).openPopup();
+          });
+        }
+
+        map.setView([lat, lon], 14);
+        marker.bindPopup(`<b>${address}</b><br>Lat: ${lat}, Lon: ${lon}`).openPopup();
+      } else {
+        alert("Address not found. Try again!");
+      }
+    }
+    window.locateAddress = locateAddress;
+
+    // Map click = manual set
+    map.on('click', function (e) {
+      if (!marker) {
+        marker = L.marker(e.latlng, {draggable: true}).addTo(map);
+        marker.on('dragend', function () {
+          var pos = marker.getLatLng();
+          finalLat = pos.lat;
+          finalLng = pos.lng;
+          marker.setPopupContent(`Manual Location:<br>${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}`).openPopup();
+        });
+      } else {
+        marker.setLatLng(e.latlng);
+      }
+
+      finalLat = e.latlng.lat;
+      finalLng = e.latlng.lng;
+      marker.bindPopup(`Manual Location:<br>${finalLat.toFixed(5)}, ${finalLng.toFixed(5)}`).openPopup();
+    });
 
 // Donation Form Submission
 donationForm.addEventListener("submit", async (e)=>{
@@ -272,7 +467,9 @@ donationForm.addEventListener("submit", async (e)=>{
       donor_email: donor_email.value,
       food_type: document.getElementById("food_type").value,
       quantity: parseInt(document.getElementById("quantity").value),
-      location: document.getElementById("location").value,
+      location: document.getElementById("address").value,
+      latitude: finalLat, 
+      longitude: finalLng,
       photo_url: photoUrl,
       emergency_mode: document.getElementById("emergency_mode").checked
     };
@@ -288,7 +485,130 @@ donationForm.addEventListener("submit", async (e)=>{
     successDiv.style.display="none";
   }
 });
+
+let fullMap, donorMarker, receiverMarker, routeLine;
+
+function initFullMap(lat, lng) {
+  if (fullMap) {
+    fullMap.remove();
+  }
+  fullMap = L.map('mapFull').setView([lat, lng], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OSM contributors'
+  }).addTo(fullMap);
+}
+
+
+// load this donor's donations and show claim status + map button for a claimed donation
+// Function: Load donor's donations into dashboard
+async function loadDonations() {
+  if (!donorEmail) return;
+
+  const { data, error } = await supabase
+    .from('donations')
+    .select(`*, donation_receivers(*)`)
+    .eq('donor_email', donorEmail)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  const listDiv = document.getElementById("donationDashboardList");
+  listDiv.innerHTML = ""; // reset
+
+  if (!data || data.length === 0) {
+    listDiv.innerHTML = `<p class="text-gray-500">No donations yet. Start donating!</p>`;
+    return;
+  }
+
+  data.forEach(donation => {
+    const receiver = (donation.donation_receivers && donation.donation_receivers.length > 0) 
+      ? donation.donation_receivers[0] 
+      : null;
+
+    const card = document.createElement("div");
+    card.className = "donation-card";
+
+card.innerHTML = `
+  <p><b>🍲 Food:</b> ${donation.food_type} (${donation.quantity} portions)</p>
+  <p><b>📍 Location:</b> ${donation.location}</p>
+  <p><b>⚡ Emergency:</b> ${donation.emergency_mode ? "Yes" : "No"}</p>
+  <p><b>Status:</b> ${
+    receiver 
+      ? `<span class="status-tag status-claimed">Claimed by ${receiver.ngo_name || receiver.receiver_name}</span>`
+      : `<span class="status-tag status-pending">Pending claim</span>`
+  }</p>
+  <div>
+    ${
+      receiver 
+        ? `<button onclick="showTracking(${donation.id})" class="track-btn">🚚 Track Donation</button>`
+        : `<button class="track-btn" style="background:#9ca3af; cursor:not-allowed;">⏳ Awaiting Claim</button>`
+    }
+  </div>
+`;
+
+    listDiv.appendChild(card);
+  });
+}
+
+// Load donations on page ready
+if (donorEmail) {
+  loadDonations();
+}
+
+
+  // show tracking panel for a donation id (fetch donation + receiver coords)
+  window.showTracking = async (donationId) => {
+    try {
+      const { data } = await supabase
+        .from('donations')
+        .select(`*, donation_receivers:donation_receivers(*)`)
+        .eq('id', donationId)
+        .single();
+
+      if (!data) { alert('Donation not found'); return; }
+      const donation = data;
+      const receiver = (donation.donation_receivers && donation.donation_receivers.length) ? donation.donation_receivers[0] : null;
+
+      // show tracking panel
+      document.getElementById('trackingPanel').style.display = 'block';
+      initFullMap(donation.latitude || 19.0760, donation.longitude || 72.8777);
+
+      // donor marker
+      donorMarker = L.marker([donation.latitude, donation.longitude]).addTo(fullMap).bindPopup('Pickup (Donor)').openPopup();
+
+      if (receiver && receiver.receiver_lat && receiver.receiver_lng) {
+        receiverMarker = L.marker([receiver.receiver_lat, receiver.receiver_lng]).addTo(fullMap).bindPopup(`Receiver: ${receiver.receiver_name || receiver.ngo_name}`);
+        routeLine = L.polyline([[donation.latitude, donation.longitude],[receiver.receiver_lat, receiver.receiver_lng]], { color: 'green'}).addTo(fullMap);
+        // fit bounds
+        fullMap.fitBounds(routeLine.getBounds(), { padding: [40,40] });
+        document.getElementById('trackingInfo').innerText = `Claimed by ${receiver.ngo_name || receiver.receiver_name} — receiver location shown.`;
+      } else {
+        document.getElementById('trackingInfo').innerText = 'Claimed but receiver coordinates not available yet.';
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error loading tracking');
+    }
+  };
+
+  // helper to scroll to claim button (just UX)
+  window.scrollToClaim = (btn) => {
+    // optional: show message or scroll to NGO panel to claim
+    alert('This donation has not yet been claimed by any NGO. It will appear in NGO panel for claiming.');
+  };
+
+  // logout
+  signOut.addEventListener('click', () => {
+    localStorage.removeItem('donor_id');
+    localStorage.removeItem('donor_name');
+    localStorage.removeItem('donor_email');
+    location.reload();
+  });
+
+
 </script>
 </body>
 </html>
-
