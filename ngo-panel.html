@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -337,6 +338,48 @@ var map = L.map('map').setView([20.5937, 78.9629], 5); // Default India
       marker.bindPopup(`Manual Location:<br>${finalLat.toFixed(5)}, ${finalLng.toFixed(5)}`).openPopup();
     });
 
+
+    let liveLat = null, liveLng = null;
+
+function startTrackingReceiver() {
+  if (navigator.geolocation) {
+    navigator.geolocation.watchPosition(async (position) => {
+      liveLat = position.coords.latitude;
+      liveLng = position.coords.longitude;
+
+      // Optional: Update map marker dynamically
+      if (marker) {
+        marker.setLatLng([liveLat, liveLng]).bindPopup(`Live Location<br>${liveLat.toFixed(5)}, ${liveLng.toFixed(5)}`).openPopup();
+      } else {
+        marker = L.marker([liveLat, liveLng], { draggable: true }).addTo(map);
+        marker.bindPopup(`Live Location<br>${liveLat.toFixed(5)}, ${liveLng.toFixed(5)}`).openPopup();
+
+        // Allow manual drag to adjust location
+        marker.on('dragend', function () {
+          const pos = marker.getLatLng();
+          liveLat = pos.lat;
+          liveLng = pos.lng;
+        });
+      }
+
+      // Update Supabase continuously (every 10-15 seconds)
+      await supabase.from('donation_receivers')
+        .update({ receiver_lat: liveLat, receiver_lng: liveLng })
+        .eq('receiver_id', localStorage.getItem('receiver_id')); // Must store receiver's ID locally
+    }, (error) => {
+      console.error('Geolocation error:', error);
+    }, {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 10000
+    });
+  } else {
+    alert("Geolocation is not supported by your browser.");
+  }
+}
+
+
+
 async function openReceiverModal(donationId, tableRow, emergency){
   modal.style.display="block";
   document.getElementById("ngo_name").value=ngoName;
@@ -350,8 +393,10 @@ async function openReceiverModal(donationId, tableRow, emergency){
   receiver_phone: document.getElementById("receiver_phone").value,
   receiver_id: document.getElementById("receiver_id").value,
   live_location: document.getElementById("address").value,
-  latitude: finalLat, 
-      longitude: finalLng,
+  latitude: finalLat || liveLat,
+    longitude: finalLng || liveLng,
+   receiver_lat: liveLat,
+    receiver_lng: liveLng, 
   delivery_time: document.getElementById("delivery_time").value,
   notes: document.getElementById("notes").value || null,
   donation_id: donationId,
@@ -375,6 +420,7 @@ window.onclick=e=>{ if(e.target==modal) modal.style.display="none"; };
 
 fetchDonations();
 fetchClaimedDashboard();
+startTrackingReceiver()
 
 </script>
 </body>
