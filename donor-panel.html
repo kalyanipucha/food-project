@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -113,6 +114,14 @@
       height: 30vh;
       width: 40%;
     }
+
+    #mapFull {
+  height: 40vh; /* or any value you want */
+  width: 100%;
+  border-radius: 12px;
+  margin-top: 1rem;
+}
+
 
 
      /* ---------- Animations ---------- */
@@ -543,7 +552,7 @@ card.innerHTML = `
   <div>
     ${
       receiver 
-        ? `<button onclick="showTracking(${donation.id})" class="track-btn">🚚 Track Donation</button>`
+        ? `<button onclick="showTracking('${donation.id}')" class="track-btn">🚚 Track Donation</button>`
         : `<button class="track-btn" style="background:#9ca3af; cursor:not-allowed;">⏳ Awaiting Claim</button>`
     }
   </div>
@@ -560,45 +569,71 @@ if (donorEmail) {
 
 
   // show tracking panel for a donation id (fetch donation + receiver coords)
-  window.showTracking = async (donationId) => {
-    try {
-      const { data } = await supabase
-        .from('donations')
-        .select(`*, donation_receivers:donation_receivers(*)`)
-        .eq('id', donationId)
-        .single();
+window.showTracking = async (donationId) => {
+  try {
+    const trackingPanel = document.getElementById('trackingPanel');
+    trackingPanel.style.display = 'block'; // show panel first
 
-      if (!data) { alert('Donation not found'); return; }
-      const donation = data;
-      const receiver = (donation.donation_receivers && donation.donation_receivers.length) ? donation.donation_receivers[0] : null;
+    // Fetch donation + receiver
+    const { data: donation, error } = await supabase
+      .from('donations')
+      .select(`*, donation_receivers(*)`)
+      .eq('id', donationId)
+      .single();
 
-      // show tracking panel
-      document.getElementById('trackingPanel').style.display = 'block';
-      initFullMap(donation.latitude || 19.0760, donation.longitude || 72.8777);
-
-      // donor marker
-      donorMarker = L.marker([donation.latitude, donation.longitude]).addTo(fullMap).bindPopup('Pickup (Donor)').openPopup();
-
-      if (receiver && receiver.receiver_lat && receiver.receiver_lng) {
-        receiverMarker = L.marker([receiver.receiver_lat, receiver.receiver_lng]).addTo(fullMap).bindPopup(`Receiver: ${receiver.receiver_name || receiver.ngo_name}`);
-        routeLine = L.polyline([[donation.latitude, donation.longitude],[receiver.receiver_lat, receiver.receiver_lng]], { color: 'green'}).addTo(fullMap);
-        // fit bounds
-        fullMap.fitBounds(routeLine.getBounds(), { padding: [40,40] });
-        document.getElementById('trackingInfo').innerText = `Claimed by ${receiver.ngo_name || receiver.receiver_name} — receiver location shown.`;
-      } else {
-        document.getElementById('trackingInfo').innerText = 'Claimed but receiver coordinates not available yet.';
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Error loading tracking');
+    if (error || !donation) {
+      console.error(error);
+      alert('Error fetching donation info.');
+      return;
     }
-  };
 
-  // helper to scroll to claim button (just UX)
-  window.scrollToClaim = (btn) => {
-    // optional: show message or scroll to NGO panel to claim
-    alert('This donation has not yet been claimed by any NGO. It will appear in NGO panel for claiming.');
-  };
+    const receiver = (donation.donation_receivers?.length > 0)
+      ? donation.donation_receivers[0]
+      : null;
+
+    // Ensure donor coordinates exist
+    if (!donation.latitude || !donation.longitude) {
+      alert("Donor location not found!");
+      return;
+    }
+
+    // Initialize map
+    initFullMap(donation.latitude, donation.longitude);
+
+    // Donor marker
+    donorMarker = L.marker([donation.latitude, donation.longitude])
+                  .addTo(fullMap)
+                  .bindPopup('Pickup (Donor)').openPopup();
+
+    if (receiver?.receiver_lat && receiver?.receiver_lng) {
+      receiverMarker = L.marker([receiver.receiver_lat, receiver.receiver_lng])
+                        .addTo(fullMap)
+                        .bindPopup(`${receiver.receiver_name || receiver.ngo_name}`)
+                        .openPopup();
+
+      // Draw line
+      routeLine = L.polyline([
+        [donation.latitude, donation.longitude],
+        [receiver.receiver_lat, receiver.receiver_lng]
+      ], { color: 'green', weight: 4 }).addTo(fullMap);
+
+      fullMap.fitBounds(routeLine.getBounds(), { padding: [50,50] });
+
+      document.getElementById('trackingInfo').innerText = 
+        `Claimed by ${receiver.ngo_name || receiver.receiver_name} — receiver location shown.`;
+    } else {
+      document.getElementById('trackingInfo').innerText = 
+        'Claimed but receiver coordinates not available yet.';
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert('Error loading tracking map. Check console.');
+  }
+};
+
+
+
 
   // logout
   signOut.addEventListener('click', () => {
