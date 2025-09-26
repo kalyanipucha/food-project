@@ -249,26 +249,51 @@ async function fetchDonations(){
 
 
 
-async function fetchClaimedDashboard(){
-  const { data, error } = await supabase.from("donation_receivers").select("*").eq("ngo_id",ngoId).order("created_at",{ascending:false});
-  if(error) return console.error(error);
-  claimedDashboard.innerHTML="";
-  data.forEach(item=>{
-    const card=document.createElement("div");
+async function fetchClaimedDashboard() {
+  const { data: receivers, error } = await supabase
+    .from("donation_receivers")
+    .select("*")
+    .eq("ngo_id", ngoId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  claimedDashboard.innerHTML = "";
+
+  for (const item of receivers) {
+    // fetch related donation by donation_id
+    const { data: donation } = await supabase
+      .from("donations")
+      .select("donor_name, food_type, quantity, location, photo_url, emergency_mode")
+      .eq("id", item.donation_id)
+      .single();
+
+    const card = document.createElement("div");
     card.classList.add("card");
-    if(item.emergency_mode) card.innerHTML+=`<div class="emergency">EMERGENCY</div>`;
-    card.innerHTML+=`
-      <h3>Donation: <span>${item.donation_name||"N/A"}</span></h3>
+
+    if (item.emergency_mode || donation?.emergency_mode) {
+      card.innerHTML += `<div class="emergency">EMERGENCY</div>`;
+    }
+
+    card.innerHTML += `
+      <h3>Donation: <span>${donation?.food_type || "N/A"} (${donation?.quantity || "-"})</span></h3>
+      <p>Donor: <span>${donation?.donor_name || "Unknown"}</span></p>
       <p>Receiver: <span>${item.receiver_name}</span></p>
       <p>Phone: <span>${item.receiver_phone}</span></p>
       <p>ID: <span>${item.receiver_id}</span></p>
       <p>Pickup Location: <span>${item.live_location}</span></p>
       <p>Delivery Time: <span>${item.delivery_time}</span></p>
-      <p>Notes: <span>${item.notes||"-"}</span></p>
+      <p>Notes: <span>${item.notes || "-"}</span></p>
+      ${donation?.photo_url ? `<img src="${donation.photo_url}" class="food-img">` : ""}
     `;
+
     claimedDashboard.appendChild(card);
-  });
+  }
 }
+
 
 var map = L.map('map').setView([20.5937, 78.9629], 5); // Default India
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
