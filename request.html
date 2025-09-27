@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vita AI Helpline Team</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
+    body { background-color: #f0f5f9; color: #333; padding: 20px; }
+
+    header {
+        text-align: center;
+        padding: 40px 20px;
+        background: linear-gradient(90deg, #1B5E20, #4CAF50);
+        color: white;
+        border-radius: 12px;
+        margin-bottom: 40px;
+    }
+    header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+    header p { font-size: 1.1rem; }
+
+    .team-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .team-card {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        width: 260px;
+        padding: 25px 20px;
+        text-align: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .team-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+
+    .team-card img {
+        border-radius: 50%;
+        width: 100px; height: 100px;
+        object-fit: cover;
+        margin-bottom: 15px;
+    }
+
+    .team-card h3 { font-size: 1.3rem; margin-bottom: 5px; color: #1B5E20; }
+    .team-card p { font-size: 0.95rem; color: #666; margin-bottom: 15px; }
+
+    .contact-button {
+        background-color: #1B5E20;
+        color: white;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        transition: background-color 0.2s;
+        display: block;
+        margin: 0 auto;
+        text-decoration: none;
+    }
+    .contact-button:hover { background-color: #145214; }
+
+    .helpline-info {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 0.95rem;
+        color: #333;
+    }
+    .helpline-info a {
+        color: #1B5E20;
+        text-decoration: none;
+        font-weight: bold;
+        margin: 0 10px;
+    }
+    .helpline-info a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Vita AI Helpline Team</h1>
+    <p>We are here to assist all users, anytime, anywhere</p>
+</header>
+
+<div class="team-container">
+    <div class="team-card">
+        <img src="gore.jpg" alt="Aditya Gore">
+        <h3>Aditya Gore</h3>
+        <p>Support Specialist</p>
+        <a href="tel:+911234567890" class="contact-button">Call Now</a>
+        <a href="https://wa.me/9082471034" target="_blank" class="contact-button" style="margin-top:10px;">WhatsApp</a>
+    </div>
+
+    <div class="team-card">
+        <img src="pratik.jpg" alt="Pratik Nagargoje">
+        <h3>Pratik Nagargoje</h3>
+        <p>Technical Support</p>
+        <a href="tel:+911234567891" class="contact-button">Call Now</a>
+        <a href="https://wa.me/8010102088" target="_blank" class="contact-button" style="margin-top:10px;">WhatsApp</a>
+    </div>
+
+    <div class="team-card">
+        <img src="kal.jpg" alt="Kalyani Pucha">
+        <h3>Kalyani Pucha</h3>
+        <p>Customer Relations</p>
+        <a href="tel:+911234567892" class="contact-button">Call Now</a>
+        <a href="https://wa.me/7738572597" target="_blank" class="contact-button" style="margin-top:10px;">WhatsApp</a>
+    </div>
+</div>
+
+<div class="helpline-info">
+    <p>Emergency? Call our main helpline: <a href="tel:+91 8010102088">+91 8010102088</a> | WhatsApp: <a href="https://wa.me/7738572597" target="_blank">+91 7738572597</a></p>
+</div>
+
+</body>
+</html>
